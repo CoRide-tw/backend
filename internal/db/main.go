@@ -17,5 +17,8 @@ func InitDBClient(pgPool *pgxpool.Pool) error {
 		pgPool: pgPool,
 	}
 
+	// init tables
+	initUserTable()
+
 	return nil
 }
