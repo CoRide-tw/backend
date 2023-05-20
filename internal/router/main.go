@@ -20,6 +20,9 @@ func NewRouterEngine(engine *gin.Engine, service *service.Service) *gin.Engine {
 	// use CORS middleware
 	router.useCorsMiddleware()
 
+	// set routes
+	router.setUserRoutes()
+
 	return router.Engine
 }
 
