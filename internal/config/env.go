@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 )
@@ -9,7 +10,7 @@ import (
 var Env *env
 
 type env struct {
-	CoRideJwtSecret string
+	PostgresDatabaseUrl string
 }
 
 func LoadEnv() *env {
@@ -18,5 +19,7 @@ func LoadEnv() *env {
 		log.Println("Error loading .env file")
 	}
 
-	return &env{}
+	return &env{
+		PostgresDatabaseUrl: os.Getenv("POSTGRES_DATABASE_URL"),
+	}
 }
