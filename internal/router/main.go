@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/CoRide-tw/backend/internal/config"
 	"github.com/CoRide-tw/backend/internal/middleware"
 	"github.com/CoRide-tw/backend/internal/service"
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,12 @@ func NewRouterEngine(engine *gin.Engine, service *service.Service) *gin.Engine {
 	// use CORS middleware
 	router.useCorsMiddleware()
 
+	// set login routes
+	router.setLoginRoutes()
+
+	// use Auth middleware
+	router.useAuthMiddleware()
+
 	// set routes
 	router.setUserRoutes()
 
@@ -28,4 +35,8 @@ func NewRouterEngine(engine *gin.Engine, service *service.Service) *gin.Engine {
 
 func (r *router) useCorsMiddleware() {
 	r.Engine.Use(middleware.Cors())
+}
+
+func (r *router) useAuthMiddleware() {
+	r.Engine.Use(middleware.Auth(config.Env.CoRideJwtSecret))
 }
