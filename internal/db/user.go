@@ -11,8 +11,8 @@ const createUsersTableSQL = `
 	    id SERIAL,
 	    name VARCHAR(200) NOT NULL,
 		email VARCHAR(200) NOT NULL,
-	    google_id BIGINT NOT NULL UNIQUE,
-
+	    google_id VARCHAR(200) NOT NULL UNIQUE,
+		picture_url VARCHAR(200),
 	    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
 	    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
 	    deleted_at TIMESTAMP
@@ -39,6 +39,7 @@ func GetUser(id int32) (*model.User, error) {
 		&user.Name,
 		&user.Email,
 		&user.GoogleId,
+		&user.PictureUrl,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.DeletedAt,
@@ -49,16 +50,16 @@ func GetUser(id int32) (*model.User, error) {
 }
 
 const createUserSQL = `
-	INSERT INTO users (name, email, google_id)
-	VALUES ($1, $2, $3)
+	INSERT INTO users (name, email, google_id, picture_url)
+	VALUES ($1, $2, $3, $4)
 	ON CONFLICT (google_id)
-	DO UPDATE SET name = $1, email = $2, updated_at = NOW(), deleted_at = NULL
+	DO UPDATE SET name = $1, email = $2, picture_url = $4, updated_at = NOW(), deleted_at = NULL
 	RETURNING id, created_at, updated_at;
 `
 
 func UpsertUser(user *model.User) (*model.User, error) {
 	if err := DBClient.pgPool.QueryRow(context.Background(), createUserSQL,
-		user.Name, user.Email, user.GoogleId).Scan(
+		user.Name, user.Email, user.GoogleId, user.PictureUrl).Scan(
 		&user.Id, &user.CreatedAt, &user.UpdatedAt); err != nil {
 		return nil, err
 	}
