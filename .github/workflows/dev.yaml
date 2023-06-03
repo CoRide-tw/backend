@@ -17,11 +17,11 @@ jobs:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     outputs:
-      IMAGE_URL: ${{ steps.set-release-version-output.outputs.value }}
+      RELEASE_VERSION: ${{ steps.set-release-version-output.outputs.RELEASE_VERSION }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Get short git latest commit hash for version tag
       - name: Set latest commit hash into github env
@@ -30,8 +30,7 @@ jobs:
 
       # Define docker image tag
       - name: Set docker image tag into github env
-        id: set-release-version-output
-        run: echo "DOCKER_IMAGE_URL=$RUN_REGION-docker.pkg.dev/$PROJECT_ID/$GAR_REPO_NAME/$IMAGE_NAME:$RELEASE_VERSION" >> $GITHUB_ENV
+        run: echo "DOCKER_IMAGE_URL=${{ env.RUN_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
 
       # Setup gcloud CLI
       - id: 'auth'
@@ -41,28 +40,37 @@ jobs:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
           token_format: 'access_token'
 
-      - name: Build docker image
-        run: docker build -t $DOCKER_IMAGE_URL .
+      # Auth docker cli
+      - uses: 'docker/login-action@v2'
+        name: 'Docker login'
+        with:
+          registry: '${{ env.RUN_REGION }}-docker.pkg.dev'
+          username: 'oauth2accesstoken'
+          password: '${{ steps.auth.outputs.access_token }}'
 
-      # set image url as env output
-      - id: set-image-url-output
-        run: echo "IMAGE_URL=$DOCKER_IMAGE_URL" >> $GITHUB_OUTPUT
+      - name: Build docker image
+        run: docker build -t ${{ env.DOCKER_IMAGE_URL }} .
 
       - name: Configure docker authentication
         run: gcloud auth configure-docker -q
 
       - name: Push docker image to GAR
-        run: docker push $DOCKER_IMAGE_URL
+        run: docker push ${{ env.DOCKER_IMAGE_URL }}
+
+      # set image url as env output
+      - id: set-release-version-output
+        name: Set image url output
+        run: echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
 
   test:
     name: Unit Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.20.4
 
@@ -78,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Setup gcloud CLI
       - id: 'auth'
@@ -91,10 +99,10 @@ jobs:
       # Deploy image to Cloud Run
       - name: Deploy image to Google Cloud Run
         run: |-
-          gcloud run deploy "$SERVICE_NAME" \
+          gcloud run deploy "${{ env.SERVICE_NAME }}" \
             --quiet \
-            --region "$RUN_REGION" \
-            --image "{{ needs.build-push.outputs.IMAGE_URL }}" \
+            --region "${{ env.RUN_REGION }}" \
+            --image "${{ env.RUN_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-push.outputs.RELEASE_VERSION }}" \
             --platform "managed" \
             --port 8080 \
             --allow-unauthenticated
