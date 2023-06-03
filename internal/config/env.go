@@ -10,7 +10,12 @@ import (
 var Env *env
 
 type env struct {
-	PostgresDatabaseUrl string
+	PostgresDatabaseUrl     string
+	GoogleOAuthClientId     string
+	GoogleOAuthClientSecret string
+	GoogleOAuthRedirectUrl  string
+	GoogleOauthScope        string
+	CoRideJwtSecret         string
 }
 
 func LoadEnv() *env {
@@ -20,6 +25,11 @@ func LoadEnv() *env {
 	}
 
 	return &env{
-		PostgresDatabaseUrl: os.Getenv("POSTGRES_DATABASE_URL"),
+		PostgresDatabaseUrl:     os.Getenv("POSTGRES_DATABASE_URL"),
+		GoogleOAuthClientId:     os.Getenv("GOOGLE_OAUTH_CLIENT_ID"),
+		GoogleOAuthClientSecret: os.Getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
+		GoogleOAuthRedirectUrl:  os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"),
+		GoogleOauthScope:        os.Getenv("GOOGLE_OAUTH_SCOPE"),
+		CoRideJwtSecret:         os.Getenv("CORIDE_JWT_SECRET"),
 	}
 }
