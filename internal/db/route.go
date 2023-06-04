@@ -172,42 +172,48 @@ func CreateRoute(route *model.Route) (*model.Route, error) {
 
 const updateRouteSQL = `
 	UPDATE routes SET
-		start_lat = $1,
-		start_long = $2,
-		end_lat = $3,
-		end_long = $4,
-		start_time = $5,
-		end_time = $6,
-		capacity = $7,
+		start_long = $3,
+		start_lat = $4,
+		end_long = $5,
+		end_lat = $6,
+		start_time = $7,
+		end_time = $8,
+		capacity = $9,
 		updated_at = NOW()
-	WHERE id = $8, AND driver_id = $9
-	RETURNING *;
+	WHERE id = $1, AND driver_id = $2 AND deleted_at IS NULL
+	RETURNING
+		id, 
+		driver_id,
+		ST_X(start_location), ST_Y(start_location), 
+		ST_X(end_location), ST_Y(end_location), 
+		start_time, end_time, 
+		capacity, 
+		created_at, updated_at;
 `
 
 func UpdateRoute(route *model.Route) (*model.Route, error) {
 	if err := DBClient.pgPool.QueryRow(context.Background(), updateRouteSQL,
-		route.StartLat,
+		route.Id,
+		route.DriverId,
 		route.StartLong,
-		route.EndLat,
+		route.StartLat,
 		route.EndLong,
+		route.EndLat,
 		route.StartTime,
 		route.EndTime,
 		route.Capacity,
-		route.Id,
-		route.DriverId,
 	).Scan(
 		&route.Id,
 		&route.DriverId,
-		&route.StartLat,
 		&route.StartLong,
-		&route.EndLat,
+		&route.StartLat,
 		&route.EndLong,
+		&route.EndLat,
 		&route.StartTime,
 		&route.EndTime,
 		&route.Capacity,
 		&route.CreatedAt,
 		&route.UpdatedAt,
-		&route.DeletedAt,
 	); err != nil {
 		return nil, err
 	}
