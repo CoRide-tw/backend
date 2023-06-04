@@ -1,11 +1,13 @@
 package service
 
 type Service struct {
-	User *userSvc
+	User  *userSvc
+	Route *routeSvc
 }
 
 func NewService() *Service {
 	return &Service{
-		User: &userSvc{},
+		User:  &userSvc{},
+		Route: &routeSvc{},
 	}
 }

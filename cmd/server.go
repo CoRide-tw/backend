@@ -23,7 +23,10 @@ func main() {
 		log.Fatal(err)
 	}
 	defer pgPool.Close()
-	db.InitDBClient(pgPool)
+
+	if err := db.InitDBClient(pgPool); err != nil {
+		log.Fatal(err)
+	}
 
 	engine := gin.Default()
 	service := service.NewService()
