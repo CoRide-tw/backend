@@ -1,6 +1,8 @@
 package db
 
 import (
+	"log"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,7 +20,14 @@ func InitDBClient(pgPool *pgxpool.Pool) error {
 	}
 
 	// init tables
-	initUserTable()
+	if err := initUserTable(); err != nil {
+		log.Println("Init user table failed")
+		return err
+	}
+	if err := initRouteTable(); err != nil {
+		log.Println("Init route table failed")
+		return err
+	}
 
 	return nil
 }
