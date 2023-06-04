@@ -219,3 +219,16 @@ func UpdateRoute(route *model.Route) (*model.Route, error) {
 	}
 	return route, nil
 }
+
+const deleteRouteSQL = `
+	UPDATE routes SET 
+		deleted_at = NOW()
+	WHERE id = $1 AND deleted_at IS NULL;
+`
+
+func DeleteRoute(id int32) error {
+	if _, err := DBClient.pgPool.Exec(context.Background(), deleteRouteSQL, id); err != nil {
+		return err
+	}
+	return nil
+}
