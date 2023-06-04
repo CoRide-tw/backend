@@ -10,5 +10,5 @@ type User struct {
 	PictureUrl string     `json:"pictureUrl"`
 	CreatedAt  time.Time  `json:"createdAt"`
 	UpdatedAt  time.Time  `json:"updatedAt"`
-	DeletedAt  *time.Time `json:"deletedAt"`
+	DeletedAt  *time.Time `json:"deletedAt,omitempty"`
 }
