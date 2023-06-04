@@ -15,7 +15,7 @@ const createUsersTableSQL = `
 		picture_url VARCHAR(200),
 	    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
 	    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-	    deleted_at TIMESTAMP
+	    deleted_at TIMESTAMP WITH TIME ZONE
 	);
 `
 
