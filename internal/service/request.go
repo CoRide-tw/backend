@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/CoRide-tw/backend/internal/constants"
 	"github.com/CoRide-tw/backend/internal/db"
 	"github.com/CoRide-tw/backend/internal/model"
 	"github.com/CoRide-tw/backend/internal/util"
@@ -105,6 +106,22 @@ func (s *requestSvc) Update(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, requestResp)
+}
+
+func (s *requestSvc) Deny(c *gin.Context) {
+	stringId := c.Param("id")
+	requestId, err := strconv.Atoi(stringId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.UpdateRequestStatus(int32(requestId), constants.RequestStatusDenied); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func (s *requestSvc) Delete(c *gin.Context) {
