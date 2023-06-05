@@ -201,7 +201,7 @@ func CreateRequest(request *model.Request) (*model.Request, error) {
 }
 
 const updateRequestSQL = `
-	UPDATE request SET
+	UPDATE requests SET
 		pickup_location = ST_SetSRID(ST_MakePoint($4, $5), 4326), 
 		dropoff_location = ST_SetSRID(ST_MakePoint($6, $7), 4326), 
 		pickup_start_time = $7,
@@ -239,11 +239,27 @@ func UpdateRequest(request *model.Request) (*model.Request, error) {
 	return request, nil
 }
 
+const updateRequestStatusSQL = `
+	UPDATE requests SET
+		status = $2,
+		updated_at = NOW()
+	WHERE id = $1 AND deleted_at IS NULL
+`
+
+func UpdateRequestStatus(id int32, status string) error {
+	if _, err := DBClient.pgPool.Exec(context.Background(), updateRequestStatusSQL,
+		id, status,
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
 const deleteRequestSQL = `
-	UPDATE request SET
+	UPDATE requests SET
 		status = $2,
 		deleted_at = NOW()
-	WHERE id = $1 AND deleted_at IS NULL;
+	WHERE id = $1 AND deleted_at IS NULL
 `
 
 func DeleteRequest(id int32) error {
