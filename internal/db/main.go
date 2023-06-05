@@ -28,6 +28,10 @@ func InitDBClient(pgPool *pgxpool.Pool) error {
 		log.Println("Init route table failed")
 		return err
 	}
+	if err := initRequestTable(); err != nil {
+		log.Println("Init request table failed")
+		return err
+	}
 
 	return nil
 }
