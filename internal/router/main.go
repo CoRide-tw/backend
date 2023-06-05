@@ -30,6 +30,7 @@ func NewRouterEngine(engine *gin.Engine, service *service.Service) *gin.Engine {
 	// set routes
 	router.setUserRoutes()
 	router.setRouteRoutes()
+	router.setRequestRoutes()
 
 	return router.Engine
 }
