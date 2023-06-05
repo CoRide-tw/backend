@@ -12,7 +12,7 @@ const createRouteTableSQL = `
 
 	CREATE TABLE IF NOT EXISTS routes (
 		id SERIAL,
-		driver_id SERIAL NOT NULL,
+		driver_id INT NOT NULL,
 		start_location GEOMETRY(Point, 4326) NOT NULL,
 		end_location GEOMETRY(Point, 4326) NOT NULL,
 		start_time TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -23,7 +23,8 @@ const createRouteTableSQL = `
 		deleted_at TIMESTAMP WITH TIME ZONE
 	);
 
-	CREATE INDEX ON routes USING gist(start_location, end_location);
+	CREATE INDEX IF NOT EXISTS routes_start_location_end_location_idx 
+		ON routes USING gist(start_location, end_location);
 `
 
 func initRouteTable() error {
@@ -172,10 +173,8 @@ func CreateRoute(route *model.Route) (*model.Route, error) {
 
 const updateRouteSQL = `
 	UPDATE routes SET
-		start_long = $3,
-		start_lat = $4,
-		end_long = $5,
-		end_lat = $6,
+		start_location = ST_SetSRID(ST_MakePoint($3, $4), 4326), 
+		end_location = ST_SetSRID(ST_MakePoint($5, $6), 4326), 
 		start_time = $7,
 		end_time = $8,
 		capacity = $9,
