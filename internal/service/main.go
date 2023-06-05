@@ -4,6 +4,7 @@ type Service struct {
 	User    *userSvc
 	Route   *routeSvc
 	Request *requestSvc
+	Trip    *tripSvc
 }
 
 func NewService() *Service {
@@ -11,5 +12,6 @@ func NewService() *Service {
 		User:    &userSvc{},
 		Route:   &routeSvc{},
 		Request: &requestSvc{},
+		Trip:    &tripSvc{},
 	}
 }
