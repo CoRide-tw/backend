@@ -71,7 +71,17 @@ func GetRequest(id int32) (*model.Request, error) {
 }
 
 const listRequestsByRiderIdSQL = `
-	SELECT *
+	SELECT 
+		id,
+		rider_id,
+		route_id,
+		ST_X(pickup_location), ST_Y(pickup_location),
+		ST_X(dropoff_location), ST_Y(dropoff_location),
+		pickup_start_time, 
+		pickup_end_time,
+		status,
+		created_at, 
+		updated_at
 	FROM requests
 	WHERE rider_id = $1 AND deleted_at IS NULL;
 `
@@ -108,7 +118,17 @@ func ListRequestsByRiderId(riderId int32) ([]*model.Request, error) {
 }
 
 const listRequestsByRouteIdSQL = `
-	SELECT *
+	SELECT 
+		id,
+		rider_id,
+		route_id,
+		ST_X(pickup_location), ST_Y(pickup_location),
+		ST_X(dropoff_location), ST_Y(dropoff_location),
+		pickup_start_time, 
+		pickup_end_time,
+		status,
+		created_at, 
+		updated_at
 	FROM requests
 	WHERE route_id = $1 AND deleted_at IS NULL;
 `
