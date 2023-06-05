@@ -21,15 +21,19 @@ func InitDBClient(pgPool *pgxpool.Pool) error {
 
 	// init tables
 	if err := initUserTable(); err != nil {
-		log.Println("Init user table failed")
+		log.Println("Init users table failed")
 		return err
 	}
 	if err := initRouteTable(); err != nil {
-		log.Println("Init route table failed")
+		log.Println("Init routes table failed")
 		return err
 	}
 	if err := initRequestTable(); err != nil {
-		log.Println("Init request table failed")
+		log.Println("Init requests table failed")
+		return err
+	}
+	if err := initTripTable(); err != nil {
+		log.Println("Init trips table failed")
 		return err
 	}
 
