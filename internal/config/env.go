@@ -16,6 +16,7 @@ type env struct {
 	GoogleOAuthRedirectUrl  string
 	GoogleOauthScope        string
 	CoRideJwtSecret         string
+	GoogleMapsApiKey        string
 }
 
 func LoadEnv() *env {
@@ -31,5 +32,6 @@ func LoadEnv() *env {
 		GoogleOAuthRedirectUrl:  os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"),
 		GoogleOauthScope:        os.Getenv("GOOGLE_OAUTH_SCOPE"),
 		CoRideJwtSecret:         os.Getenv("CORIDE_JWT_SECRET"),
+		GoogleMapsApiKey:        os.Getenv("GOOGLE_MAPS_API_KEY"),
 	}
 }
