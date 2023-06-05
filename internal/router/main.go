@@ -32,6 +32,7 @@ func NewRouterEngine(engine *gin.Engine, service *service.Service) *gin.Engine {
 	router.setRouteRoutes()
 	router.setRequestRoutes()
 	router.setTripRoutes()
+	router.setGoogleApiRoutes()
 
 	return router.Engine
 }
