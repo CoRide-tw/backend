@@ -79,35 +79,6 @@ func (s *requestSvc) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, requestResp)
 }
 
-func (s *requestSvc) Update(c *gin.Context) {
-	stringId := c.Param("id")
-	requestId, err := strconv.Atoi(stringId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	var request model.Request
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if requestId != int(request.Id) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "request id in path and body are not the same"})
-		return
-	}
-
-	// create route in db
-	requestResp, err := db.UpdateRequest(&request)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, requestResp)
-}
-
 func (s *requestSvc) Deny(c *gin.Context) {
 	stringId := c.Param("id")
 	requestId, err := strconv.Atoi(stringId)
