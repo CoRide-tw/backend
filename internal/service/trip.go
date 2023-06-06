@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/CoRide-tw/backend/internal/constants"
 	"github.com/CoRide-tw/backend/internal/db"
 	"github.com/CoRide-tw/backend/internal/model"
 	"github.com/gin-gonic/gin"
@@ -68,10 +69,14 @@ func (s *tripSvc) Create(c *gin.Context) {
 		return
 	}
 
-	// create route in db
+	// create trip in db
 	tripResp, err := db.CreateTrip(&trip)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := db.UpdateRequestStatus(trip.RequestId, constants.RequestStatusAccepted); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
