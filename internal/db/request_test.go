@@ -3,40 +3,84 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/CoRide-tw/backend/internal/config"
 	"github.com/CoRide-tw/backend/internal/constants"
 	. "github.com/CoRide-tw/backend/internal/errors/generated/dberr"
 	"github.com/CoRide-tw/backend/internal/model"
-	. "github.com/DenChenn/blunder/pkg/blunder"
-	"github.com/jackc/pgx/v5/pgxpool"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"log"
+	"time"
 )
 
-var _ = Describe("Request", func() {
-	// initialize db connection and env
-	config.Env = config.LoadEnv()
-	pgPool, err := pgxpool.New(context.Background(), config.Env.PostgresDatabaseUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer pgPool.Close()
+const testCreateRequestSQL = `
+	INSERT INTO requests (rider_id, route_id, pickup_location, dropoff_location, pickup_start_time, pickup_end_time, tips, status)
+	VALUES (
+		$1,
+		$2,
+		ST_SetSRID(ST_MakePoint($3, $4), 4326),
+		ST_SetSRID(ST_MakePoint($5, $6), 4326),
+		$7,
+		$8,
+		$9,
+		$10
+	)
+	RETURNING id;
+`
 
+var _ = Describe("DBRequest", func() {
 	// test data
 	existedRequests := []model.Request{
-		{RiderId: 1, RouteId: 1},
-		{RiderId: 1, RouteId: 2},
-		{RiderId: 2, RouteId: 1},
+		{
+			RiderId:         -1,
+			RouteId:         -1,
+			PickupLong:      121.0134308229882,
+			PickupLat:       24.79100321524295,
+			DropoffLong:     121.01444872393937,
+			DropoffLat:      24.79071289283521,
+			PickupStartTime: time.Now(),
+			PickupEndTime:   time.Now(),
+			Tips:            100,
+			Status:          constants.RequestStatusPending,
+		},
+		{
+			RiderId:         -1,
+			RouteId:         -2,
+			PickupLong:      121.0134308229882,
+			PickupLat:       24.79100321524295,
+			DropoffLong:     121.01444872393937,
+			DropoffLat:      24.79071289283521,
+			PickupStartTime: time.Now(),
+			PickupEndTime:   time.Now(),
+			Tips:            100,
+			Status:          constants.RequestStatusPending,
+		},
+		{
+			RiderId:         -2,
+			RouteId:         -1,
+			PickupLong:      121.0134308229882,
+			PickupLat:       24.79100321524295,
+			DropoffLong:     121.01444872393937,
+			DropoffLat:      24.79071289283521,
+			PickupStartTime: time.Now(),
+			PickupEndTime:   time.Now(),
+			Tips:            100,
+			Status:          constants.RequestStatusPending,
+		},
 	}
 
 	BeforeEach(func() {
 		for i, request := range existedRequests {
-			err := pgPool.QueryRow(context.Background(), fmt.Sprintf(
-				`INSERT INTO requests (rider_id, route_id) VALUES (%d, %d) RETURNING id;`,
+			err := pgPool.QueryRow(context.Background(), testCreateRequestSQL,
 				request.RiderId,
 				request.RouteId,
-			)).Scan(&existedRequests[i].Id)
+				request.PickupLong,
+				request.PickupLat,
+				request.DropoffLong,
+				request.DropoffLat,
+				request.PickupStartTime,
+				request.PickupEndTime,
+				request.Tips,
+				request.Status,
+			).Scan(&existedRequests[i].Id)
 			Expect(err).NotTo(HaveOccurred())
 		}
 	})
@@ -69,9 +113,9 @@ var _ = Describe("Request", func() {
 
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
-				Expect(request.Id).To(Equal(int32(1)))
-				Expect(request.RiderId).To(Equal(int32(1)))
-				Expect(request.RouteId).To(Equal(int32(1)))
+				Expect(request.Id).To(Equal(existedRequests[0].Id))
+				Expect(request.RiderId).To(Equal(existedRequests[0].RiderId))
+				Expect(request.RouteId).To(Equal(existedRequests[0].RouteId))
 			})
 		})
 
@@ -162,8 +206,16 @@ var _ = Describe("Request", func() {
 		)
 
 		newRequest := model.Request{
-			RiderId: 3,
-			RouteId: 3,
+			RiderId:         -3,
+			RouteId:         -3,
+			PickupLong:      121.0134308229882,
+			PickupLat:       24.79100321524295,
+			DropoffLong:     121.01444872393937,
+			DropoffLat:      24.79071289283521,
+			PickupStartTime: time.Now(),
+			PickupEndTime:   time.Now(),
+			Tips:            100,
+			Status:          constants.RequestStatusPending,
 		}
 
 		JustBeforeEach(func() {
@@ -182,35 +234,65 @@ var _ = Describe("Request", func() {
 		When("request does not exist in database", func() {
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
-				Expect(request.RiderId).To(Equal(int32(3)))
-				Expect(request.RouteId).To(Equal(int32(3)))
+				Expect(request.RiderId).To(Equal(newRequest.RiderId))
+				Expect(request.RouteId).To(Equal(newRequest.RouteId))
 			})
 		})
 	})
 
 	Describe("UpdateRequestStatus", func() {
 		var (
-			request *model.Request
-			err     error
+			id  int32
+			err error
 		)
 
 		JustBeforeEach(func() {
-			err = UpdateRequestStatus(existedRequests[0].Id, constants.RequestStatusCompleted)
+			err = UpdateRequestStatus(id, constants.RequestStatusCompleted)
 		})
 
 		When("request exists in database", func() {
+			BeforeEach(func() {
+				id = existedRequests[0].Id
+			})
+
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
-				Expect(request.Id).To(Equal(existedRequests[0].Id))
-				Expect(request.RiderId).To(Equal(existedRequests[0].RiderId))
-				Expect(request.RouteId).To(Equal(existedRequests[0].RouteId))
-				Expect(request.Status).To(Equal(constants.RequestStatusAccepted))
+			})
+		})
+	})
+
+	Describe("DeleteRequest", func() {
+		var (
+			request *model.Request
+			err     error
+			getErr  error
+			id      int32
+		)
+
+		JustBeforeEach(func() {
+			err = DeleteRequest(id)
+			request, getErr = GetRequest(id)
+		})
+
+		When("request exists in database", func() {
+			BeforeEach(func() {
+				id = existedRequests[0].Id
+			})
+
+			It("succeeds", func() {
+				Expect(err).NotTo(HaveOccurred())
+				Expect(getErr).To(MatchError(ErrRequestNotFound))
+				Expect(request).To(BeNil())
 			})
 		})
 
 		When("request does not exist in database", func() {
+			BeforeEach(func() {
+				id = 0
+			})
+
 			It("fails", func() {
-				Expect(err).To(MatchError(ErrUndefined))
+				Expect(getErr).To(MatchError(ErrRequestNotFound))
 				Expect(request).To(BeNil())
 			})
 		})

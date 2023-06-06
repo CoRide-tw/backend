@@ -84,6 +84,7 @@ func UpdateUser(id int32, user *model.User) (*model.User, error) {
 		&updatedUser.Name,
 		&updatedUser.Email,
 		&updatedUser.GoogleId,
+		&updatedUser.PictureUrl,
 		&updatedUser.CreatedAt,
 		&updatedUser.UpdatedAt,
 		&updatedUser.DeletedAt); err != nil {

@@ -173,54 +173,6 @@ func CreateRoute(route *model.Route) (*model.Route, error) {
 	return route, nil
 }
 
-const updateRouteSQL = `
-	UPDATE routes SET
-		start_location = ST_SetSRID(ST_MakePoint($3, $4), 4326), 
-		end_location = ST_SetSRID(ST_MakePoint($5, $6), 4326), 
-		start_time = $7,
-		end_time = $8,
-		capacity = $9,
-		updated_at = NOW()
-	WHERE id = $1, AND driver_id = $2 AND deleted_at IS NULL
-	RETURNING
-		id, 
-		driver_id,
-		ST_X(start_location), ST_Y(start_location), 
-		ST_X(end_location), ST_Y(end_location), 
-		start_time, end_time, 
-		capacity, 
-		created_at, updated_at;
-`
-
-func UpdateRoute(route *model.Route) (*model.Route, error) {
-	if err := DBClient.pgPool.QueryRow(context.Background(), updateRouteSQL,
-		route.Id,
-		route.DriverId,
-		route.StartLong,
-		route.StartLat,
-		route.EndLong,
-		route.EndLat,
-		route.StartTime,
-		route.EndTime,
-		route.Capacity,
-	).Scan(
-		&route.Id,
-		&route.DriverId,
-		&route.StartLong,
-		&route.StartLat,
-		&route.EndLong,
-		&route.EndLat,
-		&route.StartTime,
-		&route.EndTime,
-		&route.Capacity,
-		&route.CreatedAt,
-		&route.UpdatedAt,
-	); err != nil {
-		return nil, Match(err, pgx.ErrNoRows, ErrRouteNotFound).Return()
-	}
-	return route, nil
-}
-
 const deleteRouteSQL = `
 	UPDATE routes SET 
 		deleted_at = NOW()
