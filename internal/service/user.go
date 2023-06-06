@@ -90,7 +90,13 @@ func (s *userSvc) Get(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id must be integer"})
 		return
 	}
-	if c.GetInt("userId") != userId {
+
+	authUid, authUidExist := c.Get("userId")
+	if !authUidExist {
+		c.JSON(http.StatusForbidden, gin.H{"error": "permission denied"})
+		return
+	}
+	if authUid != int32(userId) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "permission denied"})
 		return
 	}
@@ -112,7 +118,12 @@ func (s *userSvc) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id must be integer"})
 		return
 	}
-	if c.GetInt("userId") != userId {
+	authUid, authUidExist := c.Get("userId")
+	if !authUidExist {
+		c.JSON(http.StatusForbidden, gin.H{"error": "permission denied"})
+		return
+	}
+	if authUid != int32(userId) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "permission denied"})
 		return
 	}
