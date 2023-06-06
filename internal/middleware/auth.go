@@ -41,7 +41,7 @@ func Auth(secret string) gin.HandlerFunc {
 		)
 
 		// add user id into context
-		c.Set("user_id", parsedClaims.ID)
+		c.Set("userId", parsedClaims.ID)
 
 		if err != nil {
 			var message string
