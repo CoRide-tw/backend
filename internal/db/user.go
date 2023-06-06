@@ -2,8 +2,10 @@ package db
 
 import (
 	"context"
-
+	. "github.com/CoRide-tw/backend/internal/errors/generated/dberr"
 	"github.com/CoRide-tw/backend/internal/model"
+	. "github.com/DenChenn/blunder/pkg/blunder"
+	"github.com/jackc/pgx/v5"
 )
 
 const createUsersTableSQL = `
@@ -44,7 +46,7 @@ func GetUser(id int32) (*model.User, error) {
 		&user.UpdatedAt,
 		&user.DeletedAt,
 	); err != nil {
-		return nil, err
+		return nil, Match(err, pgx.ErrNoRows, ErrUserNotFound).Return()
 	}
 	return &user, nil
 }
@@ -61,7 +63,7 @@ func UpsertUser(user *model.User) (*model.User, error) {
 	if err := DBClient.pgPool.QueryRow(context.Background(), createUserSQL,
 		user.Name, user.Email, user.GoogleId, user.PictureUrl).Scan(
 		&user.Id, &user.CreatedAt, &user.UpdatedAt); err != nil {
-		return nil, err
+		return nil, ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return user, nil
 }
@@ -85,7 +87,7 @@ func UpdateUser(id int32, user *model.User) (*model.User, error) {
 		&updatedUser.CreatedAt,
 		&updatedUser.UpdatedAt,
 		&updatedUser.DeletedAt); err != nil {
-		return nil, err
+		return nil, Match(err, pgx.ErrNoRows, ErrUserNotFound).Return()
 	}
 
 	return &updatedUser, nil
@@ -99,7 +101,7 @@ const deleteUserSQL = `
 func DeleteUser(id int32) error {
 	if _, err := DBClient.pgPool.Exec(context.Background(), deleteUserSQL,
 		id); err != nil {
-		return err
+		return ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return nil
 }
