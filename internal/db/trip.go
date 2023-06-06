@@ -2,6 +2,9 @@ package db
 
 import (
 	"context"
+	. "github.com/CoRide-tw/backend/internal/errors/generated/dberr"
+	. "github.com/DenChenn/blunder/pkg/blunder"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/CoRide-tw/backend/internal/model"
 )
@@ -49,7 +52,7 @@ func ListTripByRiderId(riderId int32) ([]*model.Trip, error) {
 			&trip.CreatedAt,
 			&trip.DeletedAt,
 		); err != nil {
-			return nil, err
+			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		trips = append(trips, &trip)
 	}
@@ -80,7 +83,7 @@ func ListTripByDriverId(driverId int32) ([]*model.Trip, error) {
 			&trip.CreatedAt,
 			&trip.DeletedAt,
 		); err != nil {
-			return nil, err
+			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		trips = append(trips, &trip)
 	}
@@ -104,7 +107,7 @@ func GetTrip(id int32) (*model.Trip, error) {
 		&trip.CreatedAt,
 		&trip.DeletedAt,
 	); err != nil {
-		return nil, err
+		return nil, Match(err, pgx.ErrNoRows, ErrTripNotFound).Return()
 	}
 	return &trip, nil
 }
@@ -130,7 +133,7 @@ func CreateTrip(trip *model.Trip) (*model.Trip, error) {
 		&trip.Id,
 		&trip.CreatedAt,
 	); err != nil {
-		return nil, err
+		return nil, ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return trip, nil
 }

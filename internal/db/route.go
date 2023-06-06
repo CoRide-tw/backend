@@ -2,9 +2,11 @@ package db
 
 import (
 	"context"
-	"time"
-
+	. "github.com/CoRide-tw/backend/internal/errors/generated/dberr"
 	"github.com/CoRide-tw/backend/internal/model"
+	. "github.com/DenChenn/blunder/pkg/blunder"
+	"github.com/jackc/pgx/v5"
+	"time"
 )
 
 const createRouteTableSQL = `
@@ -63,7 +65,7 @@ func GetRoute(id int32) (*model.Route, error) {
 		&route.UpdatedAt,
 		&route.DeletedAt,
 	); err != nil {
-		return nil, err
+		return nil, Match(err, pgx.ErrNoRows, ErrRouteNotFound).Return()
 	}
 	return &route, nil
 }
@@ -131,7 +133,7 @@ func ListNearestRoutes(
 			&route.UpdatedAt,
 			&route.DeletedAt,
 		); err != nil {
-			return nil, err
+			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		routes = append(routes, &route)
 	}
@@ -166,7 +168,7 @@ func CreateRoute(route *model.Route) (*model.Route, error) {
 		&route.CreatedAt,
 		&route.UpdatedAt,
 	); err != nil {
-		return nil, err
+		return nil, ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return route, nil
 }
@@ -214,7 +216,7 @@ func UpdateRoute(route *model.Route) (*model.Route, error) {
 		&route.CreatedAt,
 		&route.UpdatedAt,
 	); err != nil {
-		return nil, err
+		return nil, Match(err, pgx.ErrNoRows, ErrRouteNotFound).Return()
 	}
 	return route, nil
 }
@@ -227,7 +229,7 @@ const deleteRouteSQL = `
 
 func DeleteRoute(id int32) error {
 	if _, err := DBClient.pgPool.Exec(context.Background(), deleteRouteSQL, id); err != nil {
-		return err
+		return ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return nil
 }

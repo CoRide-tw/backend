@@ -2,9 +2,11 @@ package db
 
 import (
 	"context"
-
 	"github.com/CoRide-tw/backend/internal/constants"
+	. "github.com/CoRide-tw/backend/internal/errors/generated/dberr"
 	"github.com/CoRide-tw/backend/internal/model"
+	. "github.com/DenChenn/blunder/pkg/blunder"
+	"github.com/jackc/pgx/v5"
 )
 
 const createRequestTable = `
@@ -65,7 +67,7 @@ func GetRequest(id int32) (*model.Request, error) {
 		&request.CreatedAt,
 		&request.UpdatedAt,
 	); err != nil {
-		return nil, err
+		return nil, Match(err, pgx.ErrNoRows, ErrRequestNotFound).Return()
 	}
 	return &request, nil
 }
@@ -110,7 +112,7 @@ func ListRequestsByRiderId(riderId int32) ([]*model.Request, error) {
 			&request.CreatedAt,
 			&request.UpdatedAt,
 		); err != nil {
-			return nil, err
+			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		requests = append(requests, &request)
 	}
@@ -157,7 +159,7 @@ func ListRequestsByRouteId(routeId int32) ([]*model.Request, error) {
 			&request.CreatedAt,
 			&request.UpdatedAt,
 		); err != nil {
-			return nil, err
+			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		requests = append(requests, &request)
 	}
@@ -195,46 +197,7 @@ func CreateRequest(request *model.Request) (*model.Request, error) {
 		&request.CreatedAt,
 		&request.UpdatedAt,
 	); err != nil {
-		return nil, err
-	}
-	return request, nil
-}
-
-const updateRequestSQL = `
-	UPDATE requests SET
-		pickup_location = ST_SetSRID(ST_MakePoint($4, $5), 4326), 
-		dropoff_location = ST_SetSRID(ST_MakePoint($6, $7), 4326), 
-		pickup_start_time = $7,
-		pickup_end_time = $8,
-		status = $9,
-		updated_at = NOW()
-	WHERE id = $1, AND rider_id = $2 AND route_id = $3 AND deleted_at IS NULL
-	RETURNING
-		id,
-		status,
-		created_at, 
-		updated_at;
-`
-
-func UpdateRequest(request *model.Request) (*model.Request, error) {
-	if err := DBClient.pgPool.QueryRow(context.Background(), updateRequestSQL,
-		&request.Id,
-		&request.RiderId,
-		&request.RouteId,
-		&request.PickupLong,
-		&request.PickupLat,
-		&request.DropoffLong,
-		&request.DropoffLat,
-		&request.PickupStartTime,
-		&request.PickupEndTime,
-		constants.RequestStatusPending,
-	).Scan(
-		&request.Id,
-		&request.Status,
-		&request.CreatedAt,
-		&request.UpdatedAt,
-	); err != nil {
-		return nil, err
+		return nil, ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return request, nil
 }
@@ -250,7 +213,7 @@ func UpdateRequestStatus(id int32, status string) error {
 	if _, err := DBClient.pgPool.Exec(context.Background(), updateRequestStatusSQL,
 		id, status,
 	); err != nil {
-		return err
+		return ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return nil
 }
@@ -267,7 +230,7 @@ func DeleteRequest(id int32) error {
 		id,
 		constants.RequestStatusCancelled,
 	); err != nil {
-		return err
+		return ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return nil
 }
