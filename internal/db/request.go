@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+
 	"github.com/CoRide-tw/backend/internal/constants"
 	. "github.com/CoRide-tw/backend/internal/errors/generated/dberr"
 	"github.com/CoRide-tw/backend/internal/model"
@@ -20,6 +21,7 @@ const createRequestTable = `
 		dropoff_location GEOMETRY(Point, 4326) NOT NULL,
 		pickup_start_time TIMESTAMP WITH TIME ZONE NOT NULL,
 		pickup_end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+		tips INT NOT NULL,
 		status VARCHAR(50) NOT NULL,
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
 		updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -45,6 +47,7 @@ const getRequestSQL = `
 		ST_X(pickup_location), ST_Y(pickup_location),
 		ST_X(dropoff_location), ST_Y(dropoff_location),
 		pickup_start_time, pickup_end_time,
+		tips,
 		status,
 		created_at, updated_at
 	FROM requests
@@ -63,6 +66,7 @@ func GetRequest(id int32) (*model.Request, error) {
 		&request.DropoffLat,
 		&request.PickupStartTime,
 		&request.PickupEndTime,
+		&request.Tips,
 		&request.Status,
 		&request.CreatedAt,
 		&request.UpdatedAt,
@@ -81,6 +85,7 @@ const listRequestsByRiderIdSQL = `
 		ST_X(dropoff_location), ST_Y(dropoff_location),
 		pickup_start_time, 
 		pickup_end_time,
+		tips,
 		status,
 		created_at, 
 		updated_at
@@ -108,6 +113,7 @@ func ListRequestsByRiderId(riderId int32) ([]*model.Request, error) {
 			&request.DropoffLat,
 			&request.PickupStartTime,
 			&request.PickupEndTime,
+			&request.Tips,
 			&request.Status,
 			&request.CreatedAt,
 			&request.UpdatedAt,
@@ -128,6 +134,7 @@ const listRequestsByRouteIdSQL = `
 		ST_X(dropoff_location), ST_Y(dropoff_location),
 		pickup_start_time, 
 		pickup_end_time,
+		tips,
 		status,
 		created_at, 
 		updated_at
@@ -155,6 +162,7 @@ func ListRequestsByRouteId(routeId int32) ([]*model.Request, error) {
 			&request.DropoffLat,
 			&request.PickupStartTime,
 			&request.PickupEndTime,
+			&request.Tips,
 			&request.Status,
 			&request.CreatedAt,
 			&request.UpdatedAt,
@@ -167,7 +175,7 @@ func ListRequestsByRouteId(routeId int32) ([]*model.Request, error) {
 }
 
 const createRequestSQL = `
-	INSERT INTO requests (rider_id, route_id, pickup_location, dropoff_location, pickup_start_time, pickup_end_time, status)
+	INSERT INTO requests (rider_id, route_id, pickup_location, dropoff_location, pickup_start_time, pickup_end_time, tips, status)
 	VALUES (
 		$1,
 		$2,
@@ -175,7 +183,8 @@ const createRequestSQL = `
 		ST_SetSRID(ST_MakePoint($5, $6), 4326),
 		$7,
 		$8,
-		$9
+		$9,
+		$10
 	)
 	RETURNING id, status, created_at, updated_at;
 `
@@ -190,6 +199,7 @@ func CreateRequest(request *model.Request) (*model.Request, error) {
 		request.DropoffLat,
 		request.PickupStartTime,
 		request.PickupEndTime,
+		request.Tips,
 		constants.RequestStatusPending,
 	).Scan(
 		&request.Id,
