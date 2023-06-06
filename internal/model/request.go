@@ -12,6 +12,7 @@ type Request struct {
 	DropoffLat      float64    `json:"dropoffLat"`
 	PickupStartTime time.Time  `json:"pickupStartTime"`
 	PickupEndTime   time.Time  `json:"pickupEndTime"`
+	Tips            int32      `json:"tips"`
 	Status          string     `json:"status"`
 	CreatedAt       time.Time  `json:"createdAt"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
