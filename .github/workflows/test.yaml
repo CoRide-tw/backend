@@ -1,9 +1,10 @@
-name: (Dev) Test, Build and Deploy to Cloud Run
+name: Unit Test
 
 on:
   pull_request:
     branches:
       - main
+      - prod
 
 jobs:
   test:
