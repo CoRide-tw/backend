@@ -6,6 +6,9 @@ on:
       - main
       - prod
 
+env:
+  POSTGRES_DATABASE_URL: ${{ secrets.POSTGRES_DATABASE_URL }}
+
 jobs:
   test:
     name: Unit Test

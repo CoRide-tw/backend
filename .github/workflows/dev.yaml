@@ -11,6 +11,7 @@ env:
   SERVICE_NAME: coride-backend
   RUN_REGION: asia-east1
   IMAGE_NAME: coride-backend
+  POSTGRES_DATABASE_URL: ${{ secrets.POSTGRES_DATABASE_URL }}
 
 jobs:
   build-push:
