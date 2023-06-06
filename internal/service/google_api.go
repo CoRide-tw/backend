@@ -37,11 +37,11 @@ func (s *googleApiSvc) GetGeocodingWithTextSearch(c *gin.Context) {
 		return
 	}
 	if len(res.Candidates) == 0 {
-		c.JSON(http.StatusOK, gin.H{"lng": "", "lat": ""})
+		c.JSON(http.StatusOK, gin.H{"lng": "", "lat": "", "address": ""})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"lng": res.Candidates[0].Geometry.Location.Lng, "lat": res.Candidates[0].Geometry.Location.Lat})
+	c.JSON(http.StatusOK, gin.H{"lng": res.Candidates[0].Geometry.Location.Lng, "lat": res.Candidates[0].Geometry.Location.Lat, "address": res.Candidates[0].FormattedAddress})
 }
 
 // query placeId, description with text
