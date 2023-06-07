@@ -30,12 +30,28 @@ const testDeleteRouteSQL = `
 var _ = Describe("DBRequest", func() {
 	var (
 		existedRoutes                                                  []model.Route
+		existedUser                                                    model.User
 		validStartTime, validEndTime, invalidStartTime, invalidEndTime time.Time
 		err                                                            error
 	)
 
 	BeforeEach(func() {
 		// test data
+		existedUser = model.User{
+			Name:       "test",
+			Email:      "test",
+			GoogleId:   "test",
+			PictureUrl: "test",
+		}
+
+		err = pgPool.QueryRow(context.Background(), testCreateUserSQL,
+			existedUser.Name,
+			existedUser.Email,
+			existedUser.GoogleId,
+			existedUser.PictureUrl,
+		).Scan(&existedUser.Id)
+		Expect(err).NotTo(HaveOccurred())
+
 		validStartTime, err = time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
 		Expect(err).NotTo(HaveOccurred())
 		validEndTime, err = time.Parse(time.RFC3339, "2006-01-02T18:04:05Z")
@@ -48,7 +64,7 @@ var _ = Describe("DBRequest", func() {
 		existedRoutes = []model.Route{
 			// 星巴克關埔店 到 松江屋
 			{
-				DriverId:  -1,
+				DriverId:  existedUser.Id,
 				StartLong: 121.0134308229882,
 				StartLat:  24.79100321524295,
 				EndLong:   121.01444872393937,
@@ -59,7 +75,7 @@ var _ = Describe("DBRequest", func() {
 			},
 			// 豐邑商辦大樓 到 路易莎關埔店 (invalid time)
 			{
-				DriverId:  -1,
+				DriverId:  existedUser.Id,
 				StartLong: 121.01272590458588,
 				StartLat:  24.79130028800565,
 				EndLong:   121.01537274231576,
@@ -70,7 +86,7 @@ var _ = Describe("DBRequest", func() {
 			},
 			// 壽司郎 到 契茶小野田
 			{
-				DriverId:  -1,
+				DriverId:  existedUser.Id,
 				StartLong: 121.01192442739676,
 				StartLat:  24.791619557659118,
 				EndLong:   121.01631060640568,
@@ -103,6 +119,8 @@ var _ = Describe("DBRequest", func() {
 			_, err := pgPool.Exec(context.Background(), testDeleteRouteSQL, route.Id)
 			Expect(err).NotTo(HaveOccurred())
 		}
+		_, err := pgPool.Exec(context.Background(), testDeleteUserSQL, existedUser.Id)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Describe("GetRoute", func() {
@@ -149,8 +167,8 @@ var _ = Describe("DBRequest", func() {
 
 	Describe("ListNearestRoutes", func() {
 		var (
-			routes []*model.Route
-			err    error
+			resp []*ListNearestRoutesQueryResp
+			err  error
 		)
 
 		JustBeforeEach(func() {
@@ -164,17 +182,17 @@ var _ = Describe("DBRequest", func() {
 			dropOffLong := 121.01408790650603
 			dropOffLat := 24.790713673871583
 
-			routes, err = ListNearestRoutes(pickupLong, pickupLat, dropOffLong, dropOffLat, pickupTime, dropOffTime)
+			resp, err = ListNearestRoutes(pickupLong, pickupLat, dropOffLong, dropOffLat, pickupTime, dropOffTime)
 		})
 
 		When("there are routes in database", func() {
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
-				Expect(routes).NotTo(BeNil())
-				Expect(len(routes)).To(BeNumerically(">=", 2))
+				Expect(resp).NotTo(BeNil())
+				Expect(len(resp)).To(BeNumerically(">=", 2))
 
-				Expect(routes[0].Id).To(Equal(existedRoutes[0].Id))
-				Expect(routes[1].Id).To(Equal(existedRoutes[2].Id))
+				Expect(resp[0].Id).To(Equal(existedRoutes[0].Id))
+				Expect(resp[1].Id).To(Equal(existedRoutes[2].Id))
 			})
 		})
 	})
