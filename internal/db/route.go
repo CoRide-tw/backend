@@ -124,10 +124,10 @@ type ListNearestRoutesQueryResp struct {
 	CreatedAt        time.Time  `json:"createdAt"`
 	UpdatedAt        time.Time  `json:"updatedAt"`
 	DeletedAt        *time.Time `json:"deletedAt,omitempty"`
-	DriverName       string     `json:"driverName"`
-	DriverPictureUrl string     `json:"driverPictureUrl"`
-	DriverCarType    string     `json:"driverCarType"`
-	DriverCarPlate   string     `json:"driverCarPlate"`
+	DriverName       *string    `json:"driverName"`
+	DriverPictureUrl *string    `json:"driverPictureUrl"`
+	DriverCarType    *string    `json:"driverCarType"`
+	DriverCarPlate   *string    `json:"driverCarPlate"`
 }
 
 func ListNearestRoutes(
