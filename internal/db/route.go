@@ -2,11 +2,12 @@ package db
 
 import (
 	"context"
+	"time"
+
 	. "github.com/CoRide-tw/backend/internal/errors/generated/dberr"
 	"github.com/CoRide-tw/backend/internal/model"
 	. "github.com/DenChenn/blunder/pkg/blunder"
 	"github.com/jackc/pgx/v5"
-	"time"
 )
 
 const createRouteTableSQL = `
@@ -80,35 +81,58 @@ const listNearestRouteSQL = `
 			$6::timestamp with time zone AS pickup_end_time
 	)
 	SELECT 
-		id,
-		driver_id,
-		ST_X(start_location),
-		ST_Y(start_location),
-		ST_X(end_location),
-		ST_Y(end_location),
-		start_time,
-		end_time,
-		capacity,
-		created_at,
-		updated_at,
-		deleted_at
-	FROM 
-		routes, rider_requirements
+		r.id,
+		r.driver_id,
+		ST_X(r.start_location),
+		ST_Y(r.start_location),
+		ST_X(r.end_location),
+		ST_Y(r.end_location),
+		r.start_time,
+		r.end_time,
+		r.capacity,
+		r.created_at,
+		r.updated_at,
+		r.deleted_at,
+		u.name,
+		u.picture_url
+		u.car_type,
+		u.car_plate
+	FROM rider_requirements, routes r JOIN users u 
+	ON r.driver_id = u.id
 	WHERE 
-		deleted_at IS NULL 
+		r.deleted_at IS NULL 
 		AND start_time <= (SELECT pickup_start_time FROM rider_requirements)
 		AND end_time >= (SELECT pickup_end_time FROM rider_requirements)
 	ORDER BY (
 		ST_Distance(start_location, (SELECT pickup_point FROM rider_requirements)) + 
 		ST_Distance(end_location, (SELECT dropoff_point FROM rider_requirements))
 	) ASC
-	LIMIT 30;
+	LIMIT 30
 `
+
+type ListNearestRoutesQueryResp struct {
+	Id         int32      `json:"id"`
+	DriverId   int32      `json:"driverId"`
+	StartLong  float64    `json:"startLong"`
+	StartLat   float64    `json:"startLat"`
+	EndLong    float64    `json:"endLong"`
+	EndLat     float64    `json:"endLat"`
+	StartTime  time.Time  `json:"startTime"`
+	EndTime    time.Time  `json:"endTime"`
+	Capacity   int32      `json:"capacity"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
+	DeletedAt  *time.Time `json:"deletedAt,omitempty"`
+	Name       string     `json:"name"`
+	PictureUrl string     `json:"pictureUrl"`
+	CarType    string     `json:"carType"`
+	CarPlate   string     `json:"carPlate"`
+}
 
 func ListNearestRoutes(
 	pickupLong, pickupLat, dropoffLong, dropoffLat float64,
 	pickupStartTime, pickupEndTime time.Time,
-) ([]*model.Route, error) {
+) ([]*ListNearestRoutesQueryResp, error) {
 	rows, err := DBClient.pgPool.Query(context.Background(), listNearestRouteSQL,
 		pickupLong, pickupLat, dropoffLong, dropoffLat, pickupStartTime, pickupEndTime)
 	if err != nil {
@@ -116,28 +140,32 @@ func ListNearestRoutes(
 	}
 	defer rows.Close()
 
-	var routes []*model.Route
+	var items []*ListNearestRoutesQueryResp
 	for rows.Next() {
-		var route model.Route
+		var item ListNearestRoutesQueryResp
 		if err := rows.Scan(
-			&route.Id,
-			&route.DriverId,
-			&route.StartLong,
-			&route.StartLat,
-			&route.EndLong,
-			&route.EndLat,
-			&route.StartTime,
-			&route.EndTime,
-			&route.Capacity,
-			&route.CreatedAt,
-			&route.UpdatedAt,
-			&route.DeletedAt,
+			&item.Id,
+			&item.DriverId,
+			&item.StartLong,
+			&item.StartLat,
+			&item.EndLong,
+			&item.EndLat,
+			&item.StartTime,
+			&item.EndTime,
+			&item.Capacity,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&item.DeletedAt,
+			&item.Name,
+			&item.PictureUrl,
+			&item.CarType,
+			&item.CarPlate,
 		); err != nil {
 			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
-		routes = append(routes, &route)
+		items = append(items, &item)
 	}
-	return routes, nil
+	return items, nil
 }
 
 const createRouteSQL = `
