@@ -1,6 +1,7 @@
 package db
 
 import (
+	"go.uber.org/zap"
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -10,7 +11,10 @@ type DB struct {
 	pgPool *pgxpool.Pool
 }
 
-var DBClient *DB
+var (
+	DBClient *DB
+	Logger   *zap.SugaredLogger
+)
 
 func InitDBClient(pgPool *pgxpool.Pool) error {
 
@@ -36,6 +40,11 @@ func InitDBClient(pgPool *pgxpool.Pool) error {
 		log.Println("Init trips table failed")
 		return err
 	}
+
+	// init logger
+	logger, _ := zap.NewProduction()
+	defer logger.Sync() // flushes buffer, if any
+	Logger = logger.Sugar()
 
 	return nil
 }

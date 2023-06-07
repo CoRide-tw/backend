@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"go.uber.org/zap"
 	"net/http"
 
 	"github.com/CoRide-tw/backend/internal/config"
@@ -10,6 +11,7 @@ import (
 )
 
 type googleApiSvc struct {
+	Logger *zap.SugaredLogger
 }
 
 // search latlng with text
@@ -22,6 +24,7 @@ func (s *googleApiSvc) GetGeocodingWithTextSearch(c *gin.Context) {
 
 	mapsClient, err := maps.NewClient(maps.WithAPIKey(config.Env.GoogleMapsApiKey))
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -33,10 +36,12 @@ func (s *googleApiSvc) GetGeocodingWithTextSearch(c *gin.Context) {
 		InputType: maps.FindPlaceFromTextInputTypeTextQuery,
 	})
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	if len(res.Candidates) == 0 {
+		s.Logger.Error(err)
 		c.JSON(http.StatusOK, gin.H{"lng": "", "lat": "", "address": ""})
 		return
 	}
@@ -54,6 +59,7 @@ func (s *googleApiSvc) GetPlaceAutocomplete(c *gin.Context) {
 
 	mapsClient, err := maps.NewClient(maps.WithAPIKey(config.Env.GoogleMapsApiKey))
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -63,6 +69,7 @@ func (s *googleApiSvc) GetPlaceAutocomplete(c *gin.Context) {
 		Language: "zh-TW",
 	})
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

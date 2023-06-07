@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -13,11 +14,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type userSvc struct{}
+type userSvc struct {
+	Logger *zap.SugaredLogger
+}
 
 func (s *userSvc) OauthUrl(c *gin.Context) {
 	baseUrl, err := url.Parse("https://accounts.google.com/o/oauth2/v2/auth")
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -42,18 +46,21 @@ func (s *userSvc) OAuthLogin(c *gin.Context) {
 	// get code
 	var res oauthCode
 	if err := c.BindJSON(&res); err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	token, err := s.getAccessToken(res.Code)
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	userData, err := s.getUserData(token.AccessToken)
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -66,6 +73,7 @@ func (s *userSvc) OAuthLogin(c *gin.Context) {
 		PictureUrl: userData.PictureUrl,
 	})
 	if upsertErr != nil {
+		s.Logger.Error(upsertErr)
 		c.JSON(http.StatusBadRequest, gin.H{"error": upsertErr.Error()})
 		return
 	}
@@ -87,6 +95,7 @@ func (s *userSvc) Get(c *gin.Context) {
 	stringId := c.Param("id")
 	userId, err := strconv.Atoi(stringId)
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id must be integer"})
 		return
 	}
@@ -104,6 +113,7 @@ func (s *userSvc) Get(c *gin.Context) {
 	// get user from db
 	user, err := db.GetUser(int32(userId))
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -115,6 +125,7 @@ func (s *userSvc) Update(c *gin.Context) {
 	stringId := c.Param("id")
 	userId, err := strconv.Atoi(stringId)
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id must be integer"})
 		return
 	}
@@ -130,12 +141,14 @@ func (s *userSvc) Update(c *gin.Context) {
 
 	var user model.User
 	if err := c.Bind(&user); err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	updatedUser, err := db.UpdateUser(int32(userId), &user)
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -154,6 +167,7 @@ type oauthExchangeRes struct {
 func (s *userSvc) getAccessToken(code string) (*oauthExchangeRes, error) {
 	baseUrl, err := url.Parse("https://oauth2.googleapis.com/token")
 	if err != nil {
+		s.Logger.Error(err)
 		return nil, err
 	}
 
@@ -171,6 +185,7 @@ func (s *userSvc) getAccessToken(code string) (*oauthExchangeRes, error) {
 		nil,
 	)
 	if err != nil {
+		s.Logger.Error(err)
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -178,6 +193,7 @@ func (s *userSvc) getAccessToken(code string) (*oauthExchangeRes, error) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		s.Logger.Error(err)
 		return nil, err
 	}
 
@@ -188,6 +204,7 @@ func (s *userSvc) getAccessToken(code string) (*oauthExchangeRes, error) {
 
 	var res oauthExchangeRes
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		s.Logger.Error(err)
 		return nil, err
 	}
 
@@ -204,6 +221,7 @@ type userData struct {
 func (s *userSvc) getUserData(accessToken string) (*userData, error) {
 	baseUrl, err := url.Parse("https://www.googleapis.com/oauth2/v3/userinfo")
 	if err != nil {
+		s.Logger.Error(err)
 		return nil, err
 	}
 
@@ -217,6 +235,7 @@ func (s *userSvc) getUserData(accessToken string) (*userData, error) {
 		nil,
 	)
 	if err != nil {
+		s.Logger.Error(err)
 		return nil, err
 	}
 
@@ -225,12 +244,14 @@ func (s *userSvc) getUserData(accessToken string) (*userData, error) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		s.Logger.Error(err)
 		return nil, err
 	}
 
 	// Read the response as a byte slice
 	var user userData
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+		s.Logger.Error(err)
 		return nil, err
 	}
 

@@ -66,6 +66,7 @@ func GetRoute(id int32) (*model.Route, error) {
 		&route.UpdatedAt,
 		&route.DeletedAt,
 	); err != nil {
+		Logger.Error(err)
 		return nil, Match(err, pgx.ErrNoRows, ErrRouteNotFound).Return()
 	}
 	return &route, nil
@@ -161,6 +162,7 @@ func ListNearestRoutes(
 			&item.DriverCarType,
 			&item.DriverCarPlate,
 		); err != nil {
+			Logger.Error(err)
 			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		items = append(items, &item)
@@ -196,6 +198,7 @@ func CreateRoute(route *model.Route) (*model.Route, error) {
 		&route.CreatedAt,
 		&route.UpdatedAt,
 	); err != nil {
+		Logger.Error(err)
 		return nil, ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return route, nil
@@ -209,6 +212,7 @@ const deleteRouteSQL = `
 
 func DeleteRoute(id int32) error {
 	if _, err := DBClient.pgPool.Exec(context.Background(), deleteRouteSQL, id); err != nil {
+		Logger.Error(err)
 		return ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return nil

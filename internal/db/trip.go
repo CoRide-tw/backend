@@ -118,6 +118,7 @@ func ListTripByRiderId(riderId int32) ([]*ListTripResp, error) {
 			&trip.CreatedAt,
 			&trip.DeletedAt,
 		); err != nil {
+			Logger.Error(err)
 			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		trips = append(trips, &trip)
@@ -187,6 +188,7 @@ func ListTripByDriverId(driverId int32) ([]*ListTripResp, error) {
 			&trip.CreatedAt,
 			&trip.DeletedAt,
 		); err != nil {
+			Logger.Error(err)
 			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		trips = append(trips, &trip)
@@ -211,6 +213,7 @@ func GetTrip(id int32) (*model.Trip, error) {
 		&trip.CreatedAt,
 		&trip.DeletedAt,
 	); err != nil {
+		Logger.Error(err)
 		return nil, Match(err, pgx.ErrNoRows, ErrTripNotFound).Return()
 	}
 	return &trip, nil
@@ -237,6 +240,7 @@ func CreateTrip(trip *model.Trip) (*model.Trip, error) {
 		&trip.Id,
 		&trip.CreatedAt,
 	); err != nil {
+		Logger.Error(err)
 		return nil, ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return trip, nil

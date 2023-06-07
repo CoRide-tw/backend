@@ -72,6 +72,7 @@ func GetRequest(id int32) (*model.Request, error) {
 		&request.CreatedAt,
 		&request.UpdatedAt,
 	); err != nil {
+		Logger.Error(err)
 		return nil, Match(err, pgx.ErrNoRows, ErrRequestNotFound).Return()
 	}
 	return &request, nil
@@ -119,6 +120,7 @@ func ListRequestsByRiderId(riderId int32) ([]*model.Request, error) {
 			&request.CreatedAt,
 			&request.UpdatedAt,
 		); err != nil {
+			Logger.Error(err)
 			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		requests = append(requests, &request)
@@ -192,6 +194,7 @@ func ListRequestsByRouteId(routeId int32) ([]*ListRequestsByRouteIdResp, error) 
 			&request.CreatedAt,
 			&request.UpdatedAt,
 		); err != nil {
+			Logger.Error(err)
 			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
 		requests = append(requests, &request)
@@ -232,6 +235,7 @@ func CreateRequest(request *model.Request) (*model.Request, error) {
 		&request.CreatedAt,
 		&request.UpdatedAt,
 	); err != nil {
+		Logger.Error(err)
 		return nil, ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return request, nil
@@ -248,6 +252,7 @@ func UpdateRequestStatus(id int32, status string) error {
 	if _, err := DBClient.pgPool.Exec(context.Background(), updateRequestStatusSQL,
 		id, status,
 	); err != nil {
+		Logger.Error(err)
 		return ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return nil
@@ -265,6 +270,7 @@ func DeleteRequest(id int32) error {
 		id,
 		constants.RequestStatusCancelled,
 	); err != nil {
+		Logger.Error(err)
 		return ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return nil

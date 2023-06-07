@@ -51,6 +51,7 @@ func GetUser(id int32) (*model.User, error) {
 		&user.UpdatedAt,
 		&user.DeletedAt,
 	); err != nil {
+		Logger.Error(err)
 		return nil, Match(err, pgx.ErrNoRows, ErrUserNotFound).Return()
 	}
 	return &user, nil
@@ -68,6 +69,7 @@ func UpsertUser(user *model.User) (*model.User, error) {
 	if err := DBClient.pgPool.QueryRow(context.Background(), createUserSQL,
 		user.Name, user.Email, user.GoogleId, user.PictureUrl).Scan(
 		&user.Id, &user.CarType, &user.CarPlate, &user.CreatedAt, &user.UpdatedAt); err != nil {
+		Logger.Error(err)
 		return nil, ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return user, nil
@@ -97,6 +99,7 @@ func UpdateUser(id int32, user *model.User) (*model.User, error) {
 		&updatedUser.CreatedAt,
 		&updatedUser.UpdatedAt,
 		&updatedUser.DeletedAt); err != nil {
+		Logger.Error(err)
 		return nil, Match(err, pgx.ErrNoRows, ErrUserNotFound).Return()
 	}
 
@@ -111,6 +114,7 @@ const deleteUserSQL = `
 func DeleteUser(id int32) error {
 	if _, err := DBClient.pgPool.Exec(context.Background(), deleteUserSQL,
 		id); err != nil {
+		Logger.Error(err)
 		return ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return nil

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"go.uber.org/zap"
 	"log"
 
 	"github.com/CoRide-tw/backend/internal/config"
@@ -29,7 +30,9 @@ func main() {
 	}
 
 	engine := gin.Default()
-	service := service.NewService()
+	logger, _ := zap.NewProduction()
+	defer logger.Sync() // flushes buffer, if any
+	service := service.NewService(logger.Sugar())
 
 	server := router.NewRouterEngine(engine, service)
 	panic(server.Run())
