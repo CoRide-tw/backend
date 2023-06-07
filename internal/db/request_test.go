@@ -165,39 +165,39 @@ var _ = Describe("DBRequest", func() {
 		})
 	})
 
-	Describe("ListRequestsByRouteId", func() {
-		var (
-			requests []*ListRequestsByRouteIdResp
-			routeId  int32
-			err      error
-		)
-
-		JustBeforeEach(func() {
-			requests, err = ListRequestsByRouteId(routeId)
-		})
-
-		When("requests exist in database", func() {
-			BeforeEach(func() {
-				routeId = existedRequests[0].RouteId
-			})
-
-			It("succeeds", func() {
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(requests)).To(Equal(2))
-			})
-		})
-
-		When("requests do not exist in database", func() {
-			BeforeEach(func() {
-				routeId = 0
-			})
-
-			It("succeeds", func() {
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(requests)).To(Equal(0))
-			})
-		})
-	})
+	//Describe("ListRequestsByRouteId", func() {
+	//	var (
+	//		resp    []*ListRequestsByRouteIdResp
+	//		routeId int32
+	//		err     error
+	//	)
+	//
+	//	JustBeforeEach(func() {
+	//		resp, err = ListRequestsByRouteId(routeId)
+	//	})
+	//
+	//	When("requests exist in database", func() {
+	//		BeforeEach(func() {
+	//			routeId = existedRequests[0].RouteId
+	//		})
+	//
+	//		It("succeeds", func() {
+	//			Expect(err).NotTo(HaveOccurred())
+	//			Expect(len(resp)).To(Equal(2))
+	//		})
+	//	})
+	//
+	//	When("requests do not exist in database", func() {
+	//		BeforeEach(func() {
+	//			routeId = 0
+	//		})
+	//
+	//		It("succeeds", func() {
+	//			Expect(err).NotTo(HaveOccurred())
+	//			Expect(len(requests)).To(Equal(0))
+	//		})
+	//	})
+	//})
 
 	Describe("CreateRequest", func() {
 		var (

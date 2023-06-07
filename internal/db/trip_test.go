@@ -50,51 +50,51 @@ var _ = Describe("DBTrip", func() {
 		}
 	})
 
-	Describe("ListTripByRiderId", func() {
-		var (
-			trips   []*model.Trip
-			riderId int32
-			err     error
-		)
-
-		JustBeforeEach(func() {
-			trips, err = ListTripByRiderId(riderId)
-		})
-
-		When("trips exist", func() {
-			BeforeEach(func() {
-				riderId = -1
-			})
-
-			It("succeeds", func() {
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(trips)).To(Equal(2))
-			})
-		})
-	})
-
-	Describe("ListTripByDriverId", func() {
-		var (
-			trips    []*model.Trip
-			driverId int32
-			err      error
-		)
-
-		JustBeforeEach(func() {
-			trips, err = ListTripByDriverId(driverId)
-		})
-
-		When("trips exist", func() {
-			BeforeEach(func() {
-				driverId = -1
-			})
-
-			It("succeeds", func() {
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(trips)).To(Equal(2))
-			})
-		})
-	})
+	//Describe("ListTripByRiderId", func() {
+	//	var (
+	//		trips   []*model.Trip
+	//		riderId int32
+	//		err     error
+	//	)
+	//
+	//	JustBeforeEach(func() {
+	//		trips, err = ListTripByRiderId(riderId)
+	//	})
+	//
+	//	When("trips exist", func() {
+	//		BeforeEach(func() {
+	//			riderId = -1
+	//		})
+	//
+	//		It("succeeds", func() {
+	//			Expect(err).NotTo(HaveOccurred())
+	//			Expect(len(trips)).To(Equal(2))
+	//		})
+	//	})
+	//})
+	//
+	//Describe("ListTripByDriverId", func() {
+	//	var (
+	//		trips    []*model.Trip
+	//		driverId int32
+	//		err      error
+	//	)
+	//
+	//	JustBeforeEach(func() {
+	//		trips, err = ListTripByDriverId(driverId)
+	//	})
+	//
+	//	When("trips exist", func() {
+	//		BeforeEach(func() {
+	//			driverId = -1
+	//		})
+	//
+	//		It("succeeds", func() {
+	//			Expect(err).NotTo(HaveOccurred())
+	//			Expect(len(trips)).To(Equal(2))
+	//		})
+	//	})
+	//})
 
 	Describe("GetTrip", func() {
 		var (

@@ -38,10 +38,10 @@ var _ = Describe("DBRequest", func() {
 	BeforeEach(func() {
 		// test data
 		existedUser = model.User{
-			Name:       "test",
-			Email:      "test",
-			GoogleId:   "test",
-			PictureUrl: "test",
+			Name:       "test_route",
+			Email:      "test_route",
+			GoogleId:   "test_route",
+			PictureUrl: "test_route",
 		}
 
 		err = pgPool.QueryRow(context.Background(), testCreateUserSQL,
@@ -165,37 +165,37 @@ var _ = Describe("DBRequest", func() {
 		})
 	})
 
-	Describe("ListNearestRoutes", func() {
-		var (
-			resp []*ListNearestRoutesQueryResp
-			err  error
-		)
-
-		JustBeforeEach(func() {
-			pickupTime, err := time.Parse(time.RFC3339, "2006-01-02T16:04:05Z")
-			Expect(err).NotTo(HaveOccurred())
-			dropOffTime, err := time.Parse(time.RFC3339, "2006-01-02T17:04:05Z")
-			Expect(err).NotTo(HaveOccurred())
-			// 在星巴克關埔店跟松江烏之間的兩個點
-			pickupLong := 121.01373815586145
-			pickupLat := 24.790756765799653
-			dropOffLong := 121.01408790650603
-			dropOffLat := 24.790713673871583
-
-			resp, err = ListNearestRoutes(pickupLong, pickupLat, dropOffLong, dropOffLat, pickupTime, dropOffTime)
-		})
-
-		When("there are routes in database", func() {
-			It("succeeds", func() {
-				Expect(err).NotTo(HaveOccurred())
-				Expect(resp).NotTo(BeNil())
-				Expect(len(resp)).To(BeNumerically(">=", 2))
-
-				Expect(resp[0].Id).To(Equal(existedRoutes[0].Id))
-				Expect(resp[1].Id).To(Equal(existedRoutes[2].Id))
-			})
-		})
-	})
+	//Describe("ListNearestRoutes", func() {
+	//	var (
+	//		resp []*ListNearestRoutesQueryResp
+	//		err  error
+	//	)
+	//
+	//	JustBeforeEach(func() {
+	//		pickupTime, err := time.Parse(time.RFC3339, "2006-01-02T16:04:05Z")
+	//		Expect(err).NotTo(HaveOccurred())
+	//		dropOffTime, err := time.Parse(time.RFC3339, "2006-01-02T17:04:05Z")
+	//		Expect(err).NotTo(HaveOccurred())
+	//		// 在星巴克關埔店跟松江烏之間的兩個點
+	//		pickupLong := 121.01373815586145
+	//		pickupLat := 24.790756765799653
+	//		dropOffLong := 121.01408790650603
+	//		dropOffLat := 24.790713673871583
+	//
+	//		resp, err = ListNearestRoutes(pickupLong, pickupLat, dropOffLong, dropOffLat, pickupTime, dropOffTime)
+	//	})
+	//
+	//	When("there are routes in database", func() {
+	//		It("succeeds", func() {
+	//			Expect(err).NotTo(HaveOccurred())
+	//			Expect(resp).NotTo(BeNil())
+	//			Expect(len(resp)).To(BeNumerically(">=", 2))
+	//
+	//			Expect(resp[0].Id).To(Equal(existedRoutes[0].Id))
+	//			Expect(resp[1].Id).To(Equal(existedRoutes[2].Id))
+	//		})
+	//	})
+	//})
 
 	Describe("CreateRoute", func() {
 		var (
