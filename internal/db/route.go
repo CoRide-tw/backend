@@ -111,22 +111,22 @@ const listNearestRouteSQL = `
 `
 
 type ListNearestRoutesQueryResp struct {
-	Id         int32      `json:"id"`
-	DriverId   int32      `json:"driverId"`
-	StartLong  float64    `json:"startLong"`
-	StartLat   float64    `json:"startLat"`
-	EndLong    float64    `json:"endLong"`
-	EndLat     float64    `json:"endLat"`
-	StartTime  time.Time  `json:"startTime"`
-	EndTime    time.Time  `json:"endTime"`
-	Capacity   int32      `json:"capacity"`
-	CreatedAt  time.Time  `json:"createdAt"`
-	UpdatedAt  time.Time  `json:"updatedAt"`
-	DeletedAt  *time.Time `json:"deletedAt,omitempty"`
-	Name       string     `json:"name"`
-	PictureUrl string     `json:"pictureUrl"`
-	CarType    string     `json:"carType"`
-	CarPlate   string     `json:"carPlate"`
+	Id               int32      `json:"id"`
+	DriverId         int32      `json:"driverId"`
+	StartLong        float64    `json:"startLong"`
+	StartLat         float64    `json:"startLat"`
+	EndLong          float64    `json:"endLong"`
+	EndLat           float64    `json:"endLat"`
+	StartTime        time.Time  `json:"startTime"`
+	EndTime          time.Time  `json:"endTime"`
+	Capacity         int32      `json:"capacity"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
+	DeletedAt        *time.Time `json:"deletedAt,omitempty"`
+	DriverName       string     `json:"driverName"`
+	DriverPictureUrl string     `json:"driverPictureUrl"`
+	DriverCarType    string     `json:"driverCarType"`
+	DriverCarPlate   string     `json:"driverCarPlate"`
 }
 
 func ListNearestRoutes(
@@ -156,10 +156,10 @@ func ListNearestRoutes(
 			&item.CreatedAt,
 			&item.UpdatedAt,
 			&item.DeletedAt,
-			&item.Name,
-			&item.PictureUrl,
-			&item.CarType,
-			&item.CarPlate,
+			&item.DriverName,
+			&item.DriverPictureUrl,
+			&item.DriverCarType,
+			&item.DriverCarPlate,
 		); err != nil {
 			return nil, ErrUndefined.WithCustomMessage(err.Error())
 		}
