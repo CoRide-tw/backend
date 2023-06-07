@@ -167,7 +167,7 @@ var _ = Describe("DBRequest", func() {
 
 	Describe("ListRequestsByRouteId", func() {
 		var (
-			requests []*model.Request
+			requests []*ListRequestsByRouteIdResp
 			routeId  int32
 			err      error
 		)
