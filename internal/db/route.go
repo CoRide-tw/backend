@@ -94,7 +94,7 @@ const listNearestRouteSQL = `
 		r.updated_at,
 		r.deleted_at,
 		u.name,
-		u.picture_url
+		u.picture_url,
 		u.car_type,
 		u.car_plate
 	FROM rider_requirements, routes r JOIN users u 
