@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/CoRide-tw/backend/internal/constants"
 	. "github.com/CoRide-tw/backend/internal/errors/generated/dberr"
@@ -127,31 +128,53 @@ func ListRequestsByRiderId(riderId int32) ([]*model.Request, error) {
 
 const listRequestsByRouteIdSQL = `
 	SELECT 
-		id,
-		rider_id,
-		route_id,
+		r.id,
+		r.rider_id,
+		r.route_id,
 		ST_X(pickup_location), ST_Y(pickup_location),
 		ST_X(dropoff_location), ST_Y(dropoff_location),
-		pickup_start_time, 
-		pickup_end_time,
-		tips,
-		status,
-		created_at, 
-		updated_at
-	FROM requests
-	WHERE route_id = $1 AND deleted_at IS NULL;
+		r.pickup_start_time, 
+		r.pickup_end_time,
+		r.tips,
+		r.status,
+		u.name,
+		u.picture_url,
+		r.created_at, 
+		r.updated_at
+	FROM requests r
+		JOIN users u ON r.rider_id = u.id
+	WHERE r.route_id = $1 AND r.deleted_at IS NULL;
 `
 
-func ListRequestsByRouteId(routeId int32) ([]*model.Request, error) {
+type ListRequestsByRouteIdResp struct {
+	Id              int32      `json:"id"`
+	RiderId         int32      `json:"riderId"`
+	RouteId         int32      `json:"routeId"`
+	PickupLong      float64    `json:"pickupLong"`
+	PickupLat       float64    `json:"pickupLat"`
+	DropoffLong     float64    `json:"dropoffLong"`
+	DropoffLat      float64    `json:"dropoffLat"`
+	PickupStartTime time.Time  `json:"pickupStartTime"`
+	PickupEndTime   time.Time  `json:"pickupEndTime"`
+	Tips            int32      `json:"tips"`
+	Status          string     `json:"status"`
+	RiderName       string     `json:"riderName"`
+	RiderPictureUrl string     `json:"riderPictureUrl"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	DeletedAt       *time.Time `json:"deletedAt,omitempty"`
+}
+
+func ListRequestsByRouteId(routeId int32) ([]*ListRequestsByRouteIdResp, error) {
 	rows, err := DBClient.pgPool.Query(context.Background(), listRequestsByRouteIdSQL, routeId)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var requests []*model.Request
+	var requests []*ListRequestsByRouteIdResp
 	for rows.Next() {
-		var request model.Request
+		var request ListRequestsByRouteIdResp
 		if err := rows.Scan(
 			&request.Id,
 			&request.RiderId,
@@ -164,6 +187,8 @@ func ListRequestsByRouteId(routeId int32) ([]*model.Request, error) {
 			&request.PickupEndTime,
 			&request.Tips,
 			&request.Status,
+			&request.RiderName,
+			&request.RiderPictureUrl,
 			&request.CreatedAt,
 			&request.UpdatedAt,
 		); err != nil {
