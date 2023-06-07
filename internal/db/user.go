@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+
 	. "github.com/CoRide-tw/backend/internal/errors/generated/dberr"
 	"github.com/CoRide-tw/backend/internal/model"
 	. "github.com/DenChenn/blunder/pkg/blunder"
@@ -15,6 +16,8 @@ const createUsersTableSQL = `
 		email VARCHAR(200) NOT NULL,
 	    google_id VARCHAR(200) NOT NULL UNIQUE,
 		picture_url VARCHAR(200),
+		car_type VARCHAR(200),
+		car_plate VARCHAR(200),
 	    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
 	    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
 	    deleted_at TIMESTAMP WITH TIME ZONE
@@ -42,6 +45,8 @@ func GetUser(id int32) (*model.User, error) {
 		&user.Email,
 		&user.GoogleId,
 		&user.PictureUrl,
+		&user.CarType,
+		&user.CarPlate,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.DeletedAt,
@@ -56,13 +61,13 @@ const createUserSQL = `
 	VALUES ($1, $2, $3, $4)
 	ON CONFLICT (google_id)
 	DO UPDATE SET name = $1, email = $2, picture_url = $4, updated_at = NOW(), deleted_at = NULL
-	RETURNING id, created_at, updated_at;
+	RETURNING id, car_type, car_plate, created_at, updated_at;
 `
 
 func UpsertUser(user *model.User) (*model.User, error) {
 	if err := DBClient.pgPool.QueryRow(context.Background(), createUserSQL,
 		user.Name, user.Email, user.GoogleId, user.PictureUrl).Scan(
-		&user.Id, &user.CreatedAt, &user.UpdatedAt); err != nil {
+		&user.Id, &user.CarType, &user.CarPlate, &user.CreatedAt, &user.UpdatedAt); err != nil {
 		return nil, ErrUndefined.WithCustomMessage(err.Error())
 	}
 	return user, nil
@@ -70,8 +75,10 @@ func UpsertUser(user *model.User) (*model.User, error) {
 
 const updateUserSQL = `
 	UPDATE users SET
-	  email = COALESCE(NULLIF($2, ''), email),
-	  updated_at = NOW()
+		email = COALESCE(NULLIF($2, ''), email),
+		car_type = COALESCE(NULLIF($3, ''), car_type),
+		car_plate = COALESCE(NULLIF($4, ''), car_plate),
+		updated_at = NOW()
 	WHERE id = $1 AND deleted_at IS NULL
 	RETURNING *;
 `
@@ -79,12 +86,14 @@ const updateUserSQL = `
 func UpdateUser(id int32, user *model.User) (*model.User, error) {
 	var updatedUser model.User
 	if err := DBClient.pgPool.QueryRow(context.Background(), updateUserSQL,
-		id, user.Email).Scan(
+		id, user.Email, user.CarType, user.CarPlate).Scan(
 		&updatedUser.Id,
 		&updatedUser.Name,
 		&updatedUser.Email,
 		&updatedUser.GoogleId,
 		&updatedUser.PictureUrl,
+		&updatedUser.CarType,
+		&updatedUser.CarPlate,
 		&updatedUser.CreatedAt,
 		&updatedUser.UpdatedAt,
 		&updatedUser.DeletedAt); err != nil {
