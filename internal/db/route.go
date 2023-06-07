@@ -97,8 +97,8 @@ const listNearestRouteSQL = `
 		u.picture_url,
 		u.car_type,
 		u.car_plate
-	FROM rider_requirements, routes r JOIN users u 
-	ON r.driver_id = u.id
+	FROM rider_requirements, routes r 
+		JOIN users u ON r.driver_id = u.id
 	WHERE 
 		r.deleted_at IS NULL 
 		AND start_time <= (SELECT pickup_start_time FROM rider_requirements)
