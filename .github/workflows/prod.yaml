@@ -23,45 +23,45 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      # Get short git latest commit hash for version tag
-      - name: Set latest commit hash into github env
-        id: git
-        run: echo "RELEASE_VERSION=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
-
-      # Define docker image tag
-      - name: Set docker image tag into github env
-        run: echo "DOCKER_IMAGE_URL=${{ env.RUN_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
-
-      # Setup gcloud CLI
-      - id: 'auth'
-        name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1'
-        with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
-          token_format: 'access_token'
-
-      # Auth docker cli
-      - uses: 'docker/login-action@v2'
-        name: 'Docker login'
-        with:
-          registry: '${{ env.RUN_REGION }}-docker.pkg.dev'
-          username: 'oauth2accesstoken'
-          password: '${{ steps.auth.outputs.access_token }}'
-
-      - name: Build docker image
-        run: docker build -t ${{ env.DOCKER_IMAGE_URL }} .
-
-      - name: Configure docker authentication
-        run: gcloud auth configure-docker -q
-
-      - name: Push docker image to GAR
-        run: docker push ${{ env.DOCKER_IMAGE_URL }}
-
-      # set image url as env output
-      - id: set-release-version-output
-        name: Set image url output
-        run: echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+#
+#       # Get short git latest commit hash for version tag
+#       - name: Set latest commit hash into github env
+#         id: git
+#         run: echo "RELEASE_VERSION=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+#
+#       # Define docker image tag
+#       - name: Set docker image tag into github env
+#         run: echo "DOCKER_IMAGE_URL=${{ env.RUN_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+#
+#       # Setup gcloud CLI
+#       - id: 'auth'
+#         name: 'Authenticate to Google Cloud'
+#         uses: 'google-github-actions/auth@v1'
+#         with:
+#           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+#           token_format: 'access_token'
+#
+#       # Auth docker cli
+#       - uses: 'docker/login-action@v2'
+#         name: 'Docker login'
+#         with:
+#           registry: '${{ env.RUN_REGION }}-docker.pkg.dev'
+#           username: 'oauth2accesstoken'
+#           password: '${{ steps.auth.outputs.access_token }}'
+#
+#       - name: Build docker image
+#         run: docker build -t ${{ env.DOCKER_IMAGE_URL }} .
+#
+#       - name: Configure docker authentication
+#         run: gcloud auth configure-docker -q
+#
+#       - name: Push docker image to GAR
+#         run: docker push ${{ env.DOCKER_IMAGE_URL }}
+#
+#       # set image url as env output
+#       - id: set-release-version-output
+#         name: Set image url output
+#         run: echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
 
   test:
     name: Unit Test
@@ -69,41 +69,41 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.20.4
-
-      - name: Go Build
-        run: go build -v ./...
-
-      - name: Go Test
-        run: go test -v ./...
+#
+#       - name: Set up Go
+#         uses: actions/setup-go@v3
+#         with:
+#           go-version: 1.20.4
+#
+#       - name: Go Build
+#         run: go build -v ./...
+#
+#       - name: Go Test
+#         run: go test -v ./...
 
   deploy:
-    name: Deploy to Cloud Run
+    name: Deploy to EC2
     needs: [build-push, test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      # Setup gcloud CLI
-      - id: 'auth'
-        name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1'
-        with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
-          token_format: 'access_token'
-
-      # Deploy image to Cloud Run
-      - name: Deploy image to Google Cloud Run
-        run: |-
-          gcloud run deploy "${{ env.SERVICE_NAME }}" \
-            --quiet \
-            --region "${{ env.RUN_REGION }}" \
-            --image "${{ env.RUN_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-push.outputs.RELEASE_VERSION }}" \
-            --platform "managed" \
-            --port 8080 \
-            --allow-unauthenticated
+#
+#       # Setup gcloud CLI
+#       - id: 'auth'
+#         name: 'Authenticate to Google Cloud'
+#         uses: 'google-github-actions/auth@v1'
+#         with:
+#           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+#           token_format: 'access_token'
+#
+#       # Deploy image to Cloud Run
+#       - name: Deploy image to Google Cloud Run
+#         run: |-
+#           gcloud run deploy "${{ env.SERVICE_NAME }}" \
+#             --quiet \
+#             --region "${{ env.RUN_REGION }}" \
+#             --image "${{ env.RUN_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-push.outputs.RELEASE_VERSION }}" \
+#             --platform "managed" \
+#             --port 8080 \
+#             --allow-unauthenticated
